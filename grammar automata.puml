@@ -1,0 +1,15 @@
+@startuml
+[*] --> s0
+s0 --> s1: "<"
+s1 --> s1: {A|D} - ">"
+s1 --> Non_Terminal: ">"
+
+s0 --> s2: " " "
+s2 --> s2: {A|D} - " " "
+s2 --> Terminal: " " "
+
+s0 --> s3: ":"
+s3 --> s4: ":"
+s4 --> Assignment: "="
+
+@enduml
