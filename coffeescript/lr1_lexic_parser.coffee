@@ -71,11 +71,8 @@ class StateMachine
   constructor: ->
     @currentState = 0
     @currentToken = ""
-    @currentChar = null
     @string = null
     @currentStringPosition = 0
-    @tokenReady = false
-    @tokenType = null
 
   setString: (string) ->
     @string = string
