@@ -1,4 +1,4 @@
-parser = require "../coffeescript/lr1_lexic_parser"
+parser = require "../lr1_lexic_parser"
 
 exports.testIsNewLine = (test) ->
   test.equal parser.isNewLine('\n'), true

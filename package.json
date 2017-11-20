@@ -7,7 +7,8 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "gulp": "gulp",
+    "test": "nodeunit src/tests"
   },
   "author": "dospro",
   "license": "MIT",
