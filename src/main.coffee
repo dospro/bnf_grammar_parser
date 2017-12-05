@@ -17,16 +17,16 @@ load_bnf_file = (filename) ->
 #load_bnf_file "LGE.bnf"
 syntax.printFormattedGrammar syntax.bnfGrammar
 
-result = syntax.closure syntax.sample_element, syntax.bnfGrammar
-for i in result
-  console.log "Result: %o", i
+#result = syntax.closure syntax.sample_element, syntax.bnfGrammar
+#for i in result
+#  console.log "Result: %o", i
 
-token =
-  type: "terminal"
-  text: "no_terminal"
-moved = syntax.goto result, token
+#token =
+#  type: "terminal"
+#  text: "no_terminal"
+#moved = syntax.goto result, token
 
-console.log "Goto: %o", moved
+#console.log "Goto: %o", moved
 
-firsts = syntax.getFirstsSet "goal", syntax.bnfGrammar
-console.log firsts
+#firsts = syntax.getFirstsSet "goal", syntax.bnfGrammar
+#console.log firsts

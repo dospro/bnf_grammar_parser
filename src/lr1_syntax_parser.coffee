@@ -9,7 +9,7 @@ bnfGrammarString = """
 <right_side> ::= "terminal"
 """
 
-exports.bnfGrammar =
+bnfGrammar =
   "goal": [[
     type: "no-terminal"
     text: "rules_list"
@@ -55,29 +55,43 @@ exports.bnfGrammar =
     text: "terminal"
   ]]
 
-exports.printFormattedGrammar = (grammar) ->
+class LR1Item
+  constructor: (params) ->
+    if not params?
+      params = {}
+    @leftHand = params.leftHand or ""
+    @rightHand = params.rightHand or []
+    @pointPosition = params.pointposition or 0
+    @lookAheads = params.lookAheads or []
+
+  equals: (item) =>
+    ### Returns true if item contents are identical
+    #   to current object
+    ###
+    return false
+
+printFormattedGrammar = (grammar) ->
   for left_side of grammar
-    for rule in grammar[left_side]
+    grammar[left_side].forEach (rule) ->
       process.stdout.write "<#{left_side}> ::= "
-      for token in rule
+      rule.forEach (token) ->
         if token.type == "terminal"
           process.stdout.write "\"#{token.text}\" "
         else
           process.stdout.write "<#{token.text}> "
       process.stdout.write "\b\n"
 
-exports.sample_element =
+sample_element =
   leftHand: "goal"
-  rightHand: exports.bnfGrammar["goal"][0]
+  rightHand: bnfGrammar["goal"][0]
   pointPosition: 0
 
-exports.closure = (item, grammar) ->
+closure = (item, grammar) ->
   queuedItems = [item]
   finalItemsSet = []
 
   while queuedItems.length > 0
     currentItem = queuedItems.pop()
-    console.log "Closure to %o", currentItem
     finalItemsSet.push currentItem
 
     # get token next to point
@@ -93,46 +107,86 @@ exports.closure = (item, grammar) ->
     # We have a no terminal, add all the rules for that no-terminal
     leftHand = tokenNextToPoint.text
     rules = grammar[leftHand]
-    for rule in rules
-      newItem =
-        leftHand: leftHand
-        rightHand: rule
-        pointPosition: 0
+    rules.forEach (rule) ->
+      lookAheads = getLookAheads currentItem, grammar
+      lookAheads.forEach (symbol) ->
+        newItem = new LR1Item
+          leftHand: leftHand
+          rightHand: rule
+          pointPosition: 0
+          lookAheads: [symbol]
 
-      # If newItem is not in finalItemsSet
-      queuedItems.push newItem
+        console.log "Created new item %o", newItem
+        # If newItem is not in finalItemsSet
+        wasNotProcessed = finalItemsSet.every (item) =>
+          if item.leftHand != newItem.leftHand
+            return true
+          if item.rightHand != newItem.rightHand
+            return true
+          if item.pointPosition != newItem.pointPosition
+            return true
+          if item.lookAheads != newItem.lookAheads
+            return true
+          return false
+
+        if wasNotProcessed
+          queuedItems.push newItem
   return finalItemsSet
 
-exports.getFirstsSet = (noTerminal, grammar) ->
+getLookAheads = (item, grammar) ->
+  ###* Given an LR1, finds the set of look ahead symbols ###
+  if item.pointPosition >= item.rightHand.length - 1
+    return item.lookAheads
+
+  nextItem = item.rightHand[item.pointPosition + 1]
+  if nextItem.type is "terminal"
+    return [nextItem.text]
+
+  lookAheads = getFirstsSet(nextItem.text, grammar)
+  return lookAheads
+
+
+getFirstsSet = (noTerminal, grammar) ->
   firstsSet = new Set
   todoTokens = [noTerminal]
+  doneTokens = []
   while todoTokens.length > 0
     nextNoTerminal = todoTokens.pop()
+    doneTokens.push nextNoTerminal
     rules = grammar[nextNoTerminal]
-    for rule in rules
+    rules.forEach (rule) =>
       if rule[0].type == "no-terminal"
-        todoTokens.push rule[0].text
+        text = rule[0].text
+        if text not in doneTokens and text not in todoTokens
+          todoTokens.push text
       else
-        console.log "Found %o", rule[0].text
         firstsSet.add rule[0].text
-  return firstsSet
+  return Array.from firstsSet
 
 
-exports.goto = (itemsSet, token) ->
+goto = (itemsSet, token) ->
   newItems = []
   for item in itemsSet
-    if exports.compareItems item.rightHand[item.pointPosition], token
+    if compareItems item.rightHand[item.pointPosition], token
       newItem =
         leftHand: item.leftHand
         rightHand: item.rightHand
         pointPosition: item.pointPosition + 1
-      closureItems = exports.closure newItem
+      closureItems = closure newItem
       for i in closureItems
         newItems.push newItem
   return newItems
 
 
-exports.compareItems = (itemA, itemB) ->
+compareItems = (itemA, itemB) ->
   if itemA.type == itemB.type and itemA.text == itemB.text
     return true
   return false
+
+exports.printFormattedGrammar = printFormattedGrammar
+exports.closure = closure
+exports.getLookAheads = getLookAheads
+exports.getFirstsSet = getFirstsSet
+exports.goto = goto
+exports.compareItems = compareItems
+exports.bnfGrammar = bnfGrammar
