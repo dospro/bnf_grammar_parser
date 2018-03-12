@@ -64,12 +64,6 @@ class LR1Item
     @pointPosition = params.pointposition or 0
     @lookAheads = params.lookAheads or []
 
-  equals: (item) =>
-    ### Returns true if item contents are identical
-    #   to current object
-    ###
-    return false
-
 printFormattedGrammar = (grammar) ->
   for left_side of grammar
     grammar[left_side].forEach (rule) ->
@@ -116,22 +110,17 @@ closure = (item, grammar) ->
           pointPosition: 0
           lookAheads: [symbol]
 
-        console.log "Created new item %o", newItem
+        #console.log "Created new item %o", newItem
         # If newItem is not in finalItemsSet
         wasNotProcessed = finalItemsSet.every (item) =>
-          if item.leftHand != newItem.leftHand
-            return true
-          if item.rightHand != newItem.rightHand
-            return true
-          if item.pointPosition != newItem.pointPosition
-            return true
-          if item.lookAheads != newItem.lookAheads
-            return true
-          return false
+          return not compareLR1Items(item, newItem)
 
         if wasNotProcessed
           queuedItems.push newItem
   return finalItemsSet
+
+compareLR1Items = (item1, item2) ->
+  return JSON.stringify(item1) == JSON.stringify(item2)
 
 getLookAheads = (item, grammar) ->
   ###* Given an LR1, finds the set of look ahead symbols ###
@@ -189,4 +178,6 @@ exports.getLookAheads = getLookAheads
 exports.getFirstsSet = getFirstsSet
 exports.goto = goto
 exports.compareItems = compareItems
+exports.LR1Item = LR1Item
+exports.compareLR1Items = compareLR1Items
 exports.bnfGrammar = bnfGrammar

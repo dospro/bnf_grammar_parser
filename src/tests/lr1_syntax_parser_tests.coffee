@@ -96,7 +96,8 @@ testSyntaxParser =
       lookAheads: ["$"]
 
     cc0 = syntax.closure(testItem, parenthesisGrammar)
-    console.log "cc0: %o", cc0
+    test.equal cc0.length, 9
+    #console.log "cc0: %o", cc0
     test.done()
 
 exports.testSyntaxParser = testSyntaxParser
