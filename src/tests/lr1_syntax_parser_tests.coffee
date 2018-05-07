@@ -1,7 +1,7 @@
 ###* lr1_syntax_parser_tests.coffee
   # Set of tests for the syntax parser
 ###
-syntax = require "../lr1_syntax_parser"
+syntax = require "../syntaxParser"
 
 parenthesisGrammar =
   "goal": [[
@@ -89,15 +89,91 @@ testSyntaxParser =
     test.done()
 
   testClosure: (test) ->
+    expectedResult = [
+      new syntax.LR1Item({
+        leftHand: 'goal',
+        rightHand: [{type: 'no-terminal', text: 'list'}],
+        pointPosition: 0,
+        lookAheads: ['$']
+      }),
+      new syntax.LR1Item(
+        {
+          leftHand: 'list',
+          rightHand: [{type: 'no-terminal', text: 'pair'}],
+          pointPosition: 0,
+          lookAheads: ['$']
+        }),
+      new syntax.LR1Item({
+        leftHand: 'pair',
+        rightHand: [{type: 'terminal', text: '('}, {type: 'terminal', text: ')'}],
+        pointPosition: 0,
+        lookAheads: ['$']
+      }),
+      new syntax.LR1Item({
+        leftHand: 'pair',
+        rightHand: [
+          {type: 'terminal', text: '('},
+          {type: 'no-terminal', text: 'pair'},
+          {type: 'terminal', text: ')'}
+        ],
+        pointPosition: 0,
+        lookAheads: ['$']
+      }),
+      new syntax.LR1Item({
+        leftHand: 'list',
+        rightHand: [
+          {type: 'no-terminal', text: 'list'},
+          {type: 'no-terminal', text: 'pair'},
+        ],
+        pointPosition: 0,
+        lookAheads: ['$',]
+      }),
+      new syntax.LR1Item({
+        leftHand: 'list',
+        rightHand: [{type: 'no-terminal', text: 'pair'}],
+        pointPosition: 0,
+        lookAheads: ['(']
+      }),
+      new syntax.LR1Item({
+        leftHand: 'pair',
+        rightHand: [
+          {type: 'terminal', text: '('},
+          {type: 'terminal', text: ')'},
+        ],
+        pointPosition: 0,
+        lookAheads: ['(']
+      }),
+      new syntax.LR1Item({
+        leftHand: 'pair',
+        rightHand: [
+          {type: 'terminal', text: '('},
+          {type: 'no-terminal', text: 'pair'},
+          {type: 'terminal', text: ')'},
+        ],
+        pointPosition: 0,
+        lookAheads: ['(']
+      }),
+      new syntax.LR1Item({
+        leftHand: 'list',
+        rightHand: [
+          {type: 'no-terminal', text: 'list'},
+          {type: 'no-terminal', text: 'pair'},
+        ],
+        pointPosition: 0,
+        lookAheads: ['(']
+      })
+    ]
+
     testItem =
       leftHand: "goal"
       rightHand: parenthesisGrammar["goal"][0]
       pointPosition: 0
       lookAheads: ["$"]
 
+
     cc0 = syntax.closure(testItem, parenthesisGrammar)
     test.equal cc0.length, 9
-    #console.log "cc0: %o", cc0
+    test.deepEqual cc0, expectedResult
     test.done()
 
 exports.testSyntaxParser = testSyntaxParser

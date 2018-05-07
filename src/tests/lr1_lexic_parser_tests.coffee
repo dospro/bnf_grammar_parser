@@ -1,4 +1,4 @@
-parser = require "../lr1_lexic_parser"
+parser = require "../lexicParser"
 
 exports.testIsNewLine = (test) ->
   test.equal parser.isNewLine('\n'), true

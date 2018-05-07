@@ -1,7 +1,7 @@
 ###* lr1_syntax_parser_tests.coffee
   # Set of tests for the syntax parser
 ###
-syntax = require "../lr1_syntax_parser"
+syntax = require "../syntaxParser"
 
 
 testCompareLR1Items =
@@ -34,7 +34,7 @@ testCompareLR1Items =
       ]
       pointPosition: 0
       lookAheads: ['t']
-    result = syntax.compareLR1Items @testItem, equalItem
+    result = @testItem.equals equalItem
     test.equal result, true
     test.done()
 
@@ -50,7 +50,7 @@ testCompareLR1Items =
       ]
       pointPosition: 0
       lookAheads: ['t']
-    result = syntax.compareLR1Items @testItem, equalItem
+    result = @testItem.equals equalItem
     test.equal result, false
     test.done()
 
@@ -69,7 +69,7 @@ testCompareLR1Items =
       ]
       pointPosition: 0
       lookAheads: ['t']
-    result = syntax.compareLR1Items @testItem, equalItem
+    result = @testItem.equals equalItem
     test.equal result, false
     test.done()
 
@@ -84,7 +84,7 @@ testCompareLR1Items =
       ]
       pointPosition: 0
       lookAheads: ['t']
-    result = syntax.compareLR1Items @testItem, equalItem
+    result = @testItem.equals equalItem
     test.equal result, false
     test.done()
 
