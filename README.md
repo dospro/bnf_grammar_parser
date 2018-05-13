@@ -1,8 +1,14 @@
 # Grammar Parser
-This is a coffeescript application which parses a grammar in BNF format
-and can produce coffeescript code which contains actions and goto tables
-used to parse any language.
+This is a  Node.js application written in javascript which parses a grammar in BNF format
+and produces code in any language ready for parsing the languajg defined in the grammar file.
 
-It can also be used on editors to format BNF code, analyze grammars,
-transform them between different formats (xml, json, bnf...), etc.
+
+Some of it's uses can be:
+
+* It can also be used on editors to format BNF code
+* Analyze and/or reformat grammars (json, xml, yaml, bnf, etc).
+* Generate a compiler for a given language
+* Generate a syntax highlighter
+
+There can be more uses for this application of course.
 

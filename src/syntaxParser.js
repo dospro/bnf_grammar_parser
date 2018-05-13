@@ -7,6 +7,7 @@ class LR1Item {
             params = {};
         this.leftHand = params.leftHand || "";
         this.rightHand = params.rightHand || [];
+        this.ruleAction = params.ruleAction || undefined;
         this.pointPosition = params.pointPosition || 0;
         this.lookAheads = params.lookAheads || [];
     }
@@ -51,7 +52,8 @@ class SyntaxParser {
                     let newItem = new LR1Item(
                         {
                             leftHand: leftHand,
-                            rightHand: rule,
+                            rightHand: rule["rightHand"],
+                            ruleAction: rule["ruleAction"],
                             pointPosition: 0,
                             lookAheads: [symbol]
                         });
@@ -94,13 +96,13 @@ class SyntaxParser {
             doneTokens.push(nextNoTerminal);
             let rules = this.grammar[nextNoTerminal];
             for (let rule of rules) {
-                if (rule[0].type === "no-terminal") {
+                if (rule.rightHand[0].type === "no-terminal") {
                     let text = rule[0].text;
                     if ((doneTokens.indexOf(text) !== -1) && (todoTokens.indexOf(text) !== -1))
                         todoTokens.push(text);
                 }
                 else
-                    firstsSet.add(rule[0].text);
+                    firstsSet.add(rule.rightHand[0].text);
             }
         }
         return Array.from(firstsSet);
@@ -115,6 +117,7 @@ class SyntaxParser {
                     {
                         leftHand: item.leftHand,
                         rightHand: item.rightHand,
+                        ruleAction: item.ruleAction,
                         pointPosition: item.pointPosition + 1,
                         lookAheads: item.lookAheads,
                     });
@@ -150,7 +153,8 @@ class ActionTable {
         this.data[sourceIndex][item.lookAheads[0]] = {
             action: "reduce",
             leftHand: item.leftHand,
-            itemsToPull: item.rightHand.length
+            itemsToPull: item.rightHand.length,
+            ruleAction: item.ruleAction
         };
     }
 
@@ -164,8 +168,13 @@ class ActionTable {
         this.data[sourceIndex][item.lookAheads[0]] = {
             action: "accept",
             leftHand: item.leftHand,
-            itemsToPull: item.rightHand.length
+            itemsToPull: item.rightHand.length,
+            ruleAction: item.ruleAction
         };
+    }
+
+    getAction(state, token) {
+        return this.data[state][token];
     }
 }
 

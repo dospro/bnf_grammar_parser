@@ -11,37 +11,66 @@ bnfGrammarString = `
 `;
 
 bnfGrammar = {
-    "goal": [[
-        {type: "no-terminal", text: "rules_list"}
-    ]],
-    "rules_list": [[
-        {type: "terminal", text: "new-line"},
-        {type: "no-terminal", text: "rules_list"}
+    "goal": [{
+        rightHand: [
+            {type: "no-terminal", text: "rules_list"}
+        ],
+        ruleAction: () => {
+            console.log("Goal action rule!!");
+        }
+    }],
+    "rules_list": [{
+        rightHand: [
+            {type: "terminal", text: "new-line"},
+            {type: "no-terminal", text: "rules_list"}
+        ],
+        ruleAction: undefined
+    }, {
+        rightHand: [
+            {type: "no-terminal", text: "rules_list"},
+            {type: "no-terminal", text: "rule"}
+        ],
+        ruleAction: undefined
+    }, {
+        rightHand: [
+            {type: "no-terminal", text: "rule"}
+        ],
+        ruleAction: undefined
+    }],
+    "rule": [{
+        rightHand: [
+            {type: "terminal", text: "no-terminal"},
+            {type: "terminal", text: "assignment"},
+            {type: "no-terminal", text: "right_side"},
+            {type: "terminal", text: "new-line"}
+        ],
+        ruleAction: (data) => {
+            console.log("Reducing rule: %o", data);
+        }
+    }],
+    "right_side": [{
+        rightHand: [
+            {type: "no-terminal", text: "right_side"},
+            {type: "terminal", text: "no-terminal"}
+        ],
+        ruleAction: undefined
+    }, {
+        rightHand: [
+            {type: "no-terminal", text: "right_side"},
+            {type: "terminal", text: "terminal"}
 
-    ], [
-        {type: "no-terminal", text: "rules_list"},
-        {type: "no-terminal", text: "rule"}
-    ], [
-        {type: "no-terminal", text: "rule"}
-    ]],
-    "rule": [[
-        {type: "terminal", text: "no-terminal"},
-        {type: "terminal", text: "assignment"},
-        {type: "no-terminal", text: "right_side"},
-        {type: "terminal", text: "new-line"}
-    ]],
-    "right_side": [[
-        {type: "no-terminal", text: "right_side"},
-        {type: "terminal", text: "no-terminal"}
-    ], [
-        {type: "no-terminal", text: "right_side"},
-        {type: "terminal", text: "terminal"}
-
-    ], [
-        {type: "terminal", text: "no-terminal"}
-    ], [
-        {type: "terminal", text: "terminal"}
-    ]]
+        ],
+        ruleAction: undefined
+    }, {
+        rightHand: [
+            {type: "terminal", text: "no-terminal"}
+        ], ruleAction: undefined
+    }, {
+        rightHand: [
+            {type: "terminal", text: "terminal"}
+        ],
+        ruleAction: undefined
+    }]
 };
 
 module.exports.bnfGrammarString = bnfGrammarString;

@@ -15,7 +15,8 @@ function getCannonicalCollection(syntaxParser, tokensList) {
         new syntax.LR1Item(
             {
                 leftHand: "goal",
-                rightHand: bnfGrammar.bnfGrammar["goal"][0],
+                rightHand: bnfGrammar.bnfGrammar["goal"][0]["rightHand"],
+                ruleAction: bnfGrammar.bnfGrammar["goal"][0]["ruleAction"],
                 pointPosition: 0,
                 lookAheads: ["$"]
             })
@@ -97,10 +98,10 @@ function buildTree(actionTable, gotoTable) {
     lexicParser.setString(grammars.parenthesisGrammarString);
     let currentToken = lexicParser.getNextToken();
     while (true) {
-        console.log(stack);
+        //console.log(stack);
         let currentState = stack.pop();
         stack.push(currentState);
-        let action = actionTable.data[currentState][currentToken.type];
+        let action = actionTable.getAction(currentState, currentToken.type);
         if (action === undefined || action === null) {
             console.log("ERROR!!!");
             break;
@@ -109,13 +110,20 @@ function buildTree(actionTable, gotoTable) {
             let subTree = [];
             for (let i = 0; i < action["itemsToPull"]; ++i) {
                 stack.pop();
-                subTree.push(stack.pop());
+                subTree.unshift(stack.pop());
             }
+
+            if (action["ruleAction"] !== null && action["ruleAction"] !== undefined) {
+                action["ruleAction"](subTree);
+            }
+
             currentState = stack.pop();
             stack.push(currentState);
+
             let tree = {};
             tree[action["leftHand"]] = subTree;
             stack.push(tree);
+
             let newState = gotoTable[currentState][action["leftHand"]];
             stack.push(newState);
         }
