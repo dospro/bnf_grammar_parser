@@ -3,7 +3,8 @@ const parenthesisGrammarString = `
 <list> ::= <list><pair>
 <list> ::= <pair>
 <pair> ::= "(" <pair> ")"
-<pair> ::= "(" ")"`;
+<pair> ::= "(" ")"
+`;
 
 const parenthesisGrammar = {
     "goal": [[

@@ -129,5 +129,46 @@ class SyntaxParser {
     }
 }
 
+class ActionTable {
+    constructor() {
+        this.data = {};
+    }
+
+    addShift(sourceIndex, terminal, destIndex) {
+        if (!(sourceIndex in this.data))
+            this.data[sourceIndex] = {};
+        this.data[sourceIndex][terminal] = {action: "shift", index: destIndex};
+    }
+
+    addReduce(sourceIndex, item) {
+        if (!(sourceIndex in this.data))
+            this.data[sourceIndex] = {};
+        if (item.lookAheads[0] in this.data[sourceIndex]) {
+            console.log("Reduce conflict!!!");
+            return
+        }
+        this.data[sourceIndex][item.lookAheads[0]] = {
+            action: "reduce",
+            leftHand: item.leftHand,
+            itemsToPull: item.rightHand.length
+        };
+    }
+
+    addAccept(sourceIndex, item) {
+        if (!(sourceIndex in this.data))
+            this.data[sourceIndex] = {};
+        if (item.lookAheads[0] in this.data[sourceIndex]) {
+            console.log("Reduce conflict!!!");
+            return
+        }
+        this.data[sourceIndex][item.lookAheads[0]] = {
+            action: "accept",
+            leftHand: item.leftHand,
+            itemsToPull: item.rightHand.length
+        };
+    }
+}
+
 exports.SyntaxParser = SyntaxParser;
 exports.LR1Item = LR1Item;
+exports.ActionTable = ActionTable;

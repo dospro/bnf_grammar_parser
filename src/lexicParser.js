@@ -4,7 +4,8 @@ const NO_TERMINAL = 5;
 const TERMINAL = 6;
 const ASSIGNMENT = 7;
 const NEW_LINE = 8;
-const ERROR = 9;
+const EOF = 9;
+const ERROR = 10;
 const TOKEN_READY = 100;
 
 const statesMatrix = {
@@ -73,7 +74,7 @@ function isIdentifierCharacter(character) {
     if (isAlphanumeric(character))
         return true;
 
-    if (character in ['-', '_'])
+    if (['-', '_'].includes(character))
         return true;
 
     return false;
@@ -104,7 +105,10 @@ class StateMachine {
     getNextToken() {
         if (this.isEmpty()) {
             console.log("ERROR: There is no more input");
-            return null;
+            return {
+                type: "$",
+                text: "$"
+            };
         }
 
         this.currentToken = "";
@@ -161,7 +165,7 @@ class StateMachine {
 
 
     static _transition(state, input) {
-        let finalState = 9; // ERROR
+        let finalState = ERROR;
         // console.log("State: #{state}, Input: #{input}");
         switch (state) {
             case 0:
