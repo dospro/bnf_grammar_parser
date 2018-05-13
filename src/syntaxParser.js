@@ -26,6 +26,7 @@ class LR1Item {
 class SyntaxParser {
     constructor(grammar) {
         this.grammar = grammar;
+        this.cannonicalCollection = [];
     }
 
     closure(item) {
@@ -129,6 +130,89 @@ class SyntaxParser {
             }
         }
         return newItems;
+    }
+
+    buildCannonicalCollection(tokensList) {
+        if (this.cannonicalCollection.length > 0)
+            return;
+
+        let queuedItems = [this.closure(
+            new LR1Item(
+                {
+                    leftHand: "goal",
+                    rightHand: this.grammar["goal"][0]["rightHand"],
+                    ruleAction: this.grammar["goal"][0]["ruleAction"],
+                    pointPosition: 0,
+                    lookAheads: ["$"]
+                })
+        )];
+
+
+        while (queuedItems.length > 0) {
+            const currentCollection = queuedItems.shift();
+
+            if (utils.hasItem(this.cannonicalCollection, currentCollection))
+                continue;
+
+            this.cannonicalCollection.push(currentCollection);
+            for (let token of tokensList) {
+                let cc = this.goto(currentCollection, token);
+                if (cc.length > 0) {
+                    if (!utils.hasItem(this.cannonicalCollection, cc)) {
+                        queuedItems.push(cc);
+                    }
+                }
+            }
+        }
+    }
+
+    getActionTable() {
+        let actionTable = new ActionTable();
+        for (let i = 0; i < this.cannonicalCollection.length; ++i) {
+            let cc = this.cannonicalCollection[i];
+            for (let item of cc) {
+
+                //[A->B.cG,a] and goto(CCi,c)=CCj
+                let nextToken = item.tokenNextToPoint();
+                if (nextToken === null) {
+                    if (item.leftHand === 'goal') {
+                        console.log("Recording reduce [%d, %s]<- accept %s", i, item.lookAheads, item.leftHand);
+                        actionTable.addAccept(i, item)
+                    }
+                    else {
+                        console.log("Recording reduce [%d, %s]<- reduce %s", i, item.lookAheads, item.leftHand);
+                        actionTable.addReduce(i, item)
+                    }
+                }
+                else if (nextToken && nextToken.type === "terminal") {
+                    let nextState = this.goto(cc, nextToken);
+                    let newStateIndex = utils.getIndex(this.cannonicalCollection, nextState);
+                    if (newStateIndex !== null) {
+                        console.log("Recording shift[%d, %s]<-%d", i, nextToken.text, newStateIndex);
+                        actionTable.addShift(i, nextToken.text, newStateIndex);
+                    }
+                }
+            }
+        }
+        return actionTable;
+
+    }
+
+    getGotoTable(noTerminals) {
+        let gotoTable = {};
+        for (let i = 0; i < this.cannonicalCollection.length; ++i) {
+            let cc = this.cannonicalCollection[i];
+            for (let nt of noTerminals) {
+                let nextState = this.goto(cc, nt);
+                let nextStateIndex = utils.getIndex(this.cannonicalCollection, nextState);
+                if (nextStateIndex !== null) {
+                    if (!(i in gotoTable))
+                        gotoTable[i] = {};
+                    gotoTable[i][nt.text] = nextStateIndex;
+                }
+            }
+        }
+        return gotoTable;
     }
 }
 

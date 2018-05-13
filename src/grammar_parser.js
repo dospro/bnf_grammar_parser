@@ -7,89 +7,6 @@ const utils = require("./utils");
 const grammars = require("./tests/testGrammars");
 
 
-function getCannonicalCollection(syntaxParser, tokensList) {
-
-    let cannonicalCollection = [];
-
-    let queuedItems = [syntaxParser.closure(
-        new syntax.LR1Item(
-            {
-                leftHand: "goal",
-                rightHand: bnfGrammar.bnfGrammar["goal"][0]["rightHand"],
-                ruleAction: bnfGrammar.bnfGrammar["goal"][0]["ruleAction"],
-                pointPosition: 0,
-                lookAheads: ["$"]
-            })
-    )];
-
-
-    while (queuedItems.length > 0) {
-        const currentCollection = queuedItems.shift();
-
-        if (utils.hasItem(cannonicalCollection, currentCollection))
-            continue;
-
-        cannonicalCollection.push(currentCollection);
-        for (let token of tokensList) {
-            let cc = syntaxParser.goto(currentCollection, token);
-            if (cc.length > 0) {
-                if (!utils.hasItem(cannonicalCollection, cc)) {
-                    queuedItems.push(cc);
-                }
-            }
-        }
-    }
-    return cannonicalCollection;
-}
-
-function getActionTable(syntaxParser, cannonicalCollection) {
-    let actionTable = new syntax.ActionTable();
-    for (let i = 0; i < cannonicalCollection.length; ++i) {
-        let cc = cannonicalCollection[i];
-        for (let item of cc) {
-
-            //[A->B.cG,a] and goto(CCi,c)=CCj
-            let nextToken = item.tokenNextToPoint();
-            if (nextToken === null) {
-                if (item.leftHand === 'goal') {
-                    console.log("Recording reduce [%d, %s]<- accept %s", i, item.lookAheads, item.leftHand);
-                    actionTable.addAccept(i, item)
-                }
-                else {
-                    console.log("Recording reduce [%d, %s]<- reduce %s", i, item.lookAheads, item.leftHand);
-                    actionTable.addReduce(i, item)
-                }
-            }
-            else if (nextToken && nextToken.type === "terminal") {
-                let nextState = syntaxParser.goto(cc, nextToken);
-                let newStateIndex = utils.getIndex(cannonicalCollection, nextState);
-                if (newStateIndex !== null) {
-                    console.log("Recording shift[%d, %s]<-%d", i, nextToken.text, newStateIndex);
-                    actionTable.addShift(i, nextToken.text, newStateIndex);
-                }
-            }
-        }
-    }
-    return actionTable;
-}
-
-function getGotoTable(syntaxParser, cannonicalCollection, noTerminals) {
-    let gotoTable = {};
-    for (let i = 0; i < cannonicalCollection.length; ++i) {
-        let cc = cannonicalCollection[i];
-        for (let nt of noTerminals) {
-            let nextState = syntaxParser.goto(cc, nt);
-            let nextStateIndex = utils.getIndex(cannonicalCollection, nextState);
-            if (nextStateIndex !== null) {
-                if (!(i in gotoTable))
-                    gotoTable[i] = {};
-                gotoTable[i][nt.text] = nextStateIndex;
-            }
-        }
-    }
-    return gotoTable;
-}
-
 function buildTree(actionTable, gotoTable) {
     let stack = [];
     stack.push('$');
@@ -171,10 +88,9 @@ function main() {
 
     let syntaxParser = new syntax.SyntaxParser(bnfGrammar.bnfGrammar);
 
-    let cannonicalCollection = getCannonicalCollection(syntaxParser, tokens);
-    let actionTable = getActionTable(syntaxParser, cannonicalCollection);
-    let gotoTable = getGotoTable(syntaxParser, cannonicalCollection, noTerminals);
-    console.log(gotoTable);
+    syntaxParser.buildCannonicalCollection(tokens);
+    let actionTable = syntaxParser.getActionTable();
+    let gotoTable = syntaxParser.getGotoTable(noTerminals);
     let result = buildTree(actionTable, gotoTable);
     console.log("%o", JSON.stringify(result));
 }
