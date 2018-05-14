@@ -104,7 +104,6 @@ class StateMachine {
 
     getNextToken() {
         if (this.isEmpty()) {
-            console.log("ERROR: There is no more input");
             return {
                 type: "$",
                 text: "$"

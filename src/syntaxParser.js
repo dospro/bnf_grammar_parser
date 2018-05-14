@@ -176,11 +176,9 @@ class SyntaxParser {
                 let nextToken = item.tokenNextToPoint();
                 if (nextToken === null) {
                     if (item.leftHand === 'goal') {
-                        console.log("Recording reduce [%d, %s]<- accept %s", i, item.lookAheads, item.leftHand);
                         actionTable.addAccept(i, item)
                     }
                     else {
-                        console.log("Recording reduce [%d, %s]<- reduce %s", i, item.lookAheads, item.leftHand);
                         actionTable.addReduce(i, item)
                     }
                 }
@@ -188,7 +186,6 @@ class SyntaxParser {
                     let nextState = this.goto(cc, nextToken);
                     let newStateIndex = utils.getIndex(this.cannonicalCollection, nextState);
                     if (newStateIndex !== null) {
-                        console.log("Recording shift[%d, %s]<-%d", i, nextToken.text, newStateIndex);
                         actionTable.addShift(i, nextToken.text, newStateIndex);
                     }
                 }

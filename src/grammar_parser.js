@@ -3,21 +3,25 @@
 const lexic = require("./lexicParser");
 const syntax = require("./syntaxParser");
 const bnfGrammar = require("./bnfGrammar");
-const utils = require("./utils");
 const grammars = require("./tests/testGrammars");
 
+function getTop(collection) {
+    return collection[collection.length - 1];
+}
 
 function buildTree(actionTable, gotoTable) {
     let stack = [];
+    let result = {};
     stack.push('$');
     stack.push(0);
+
     let lexicParser = new lexic.StateMachine();
     lexicParser.setString(grammars.parenthesisGrammarString);
+
     let currentToken = lexicParser.getNextToken();
     while (true) {
-        //console.log(stack);
-        let currentState = stack.pop();
-        stack.push(currentState);
+        let currentState = getTop(stack);
+
         let action = actionTable.getAction(currentState, currentToken.type);
         if (action === undefined || action === null) {
             console.log("ERROR!!!");
@@ -31,15 +35,12 @@ function buildTree(actionTable, gotoTable) {
             }
 
             if (action["ruleAction"] !== null && action["ruleAction"] !== undefined) {
-                action["ruleAction"](subTree);
+                result[action["leftHand"]] = action["ruleAction"](result, subTree);
             }
 
-            currentState = stack.pop();
-            stack.push(currentState);
+            currentState = getTop(stack);
 
-            let tree = {};
-            tree[action["leftHand"]] = subTree;
-            stack.push(tree);
+            stack.push(action["leftHand"]);
 
             let newState = gotoTable[currentState][action["leftHand"]];
             stack.push(newState);
@@ -50,17 +51,20 @@ function buildTree(actionTable, gotoTable) {
             currentToken = lexicParser.getNextToken();
         }
         else if (action["action"] === "accept") {
-            console.log("Accept");
             let subTree = [];
             for (let i = 0; i < action["itemsToPull"]; ++i) {
                 stack.pop();
                 subTree.push(stack.pop());
             }
-            currentState = stack.pop();
-            stack.push(currentState);
-            let tree = {};
-            tree[action["leftHand"]] = subTree;
-            return tree;
+
+            if (action["ruleAction"] !== null && action["ruleAction"] !== undefined) {
+                result[action["leftHand"]] = action["ruleAction"](result, subTree);
+            }
+
+            currentState = getTop(stack);
+            stack.push(action["leftHand"]);
+
+            return result["goal"];
         }
         else {
             console.log("ERROR: Something went wrong");
@@ -92,7 +96,7 @@ function main() {
     let actionTable = syntaxParser.getActionTable();
     let gotoTable = syntaxParser.getGotoTable(noTerminals);
     let result = buildTree(actionTable, gotoTable);
-    console.log("%o", JSON.stringify(result));
+    console.log("%s", JSON.stringify(result, null, 2));
 }
 
 
