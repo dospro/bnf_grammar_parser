@@ -1,3 +1,6 @@
+/**
+ * @file Implements a lexic parser for bnf grammars
+ */
 "use strict";
 
 const NO_TERMINAL = 5;
@@ -30,7 +33,12 @@ const statesMatrix = {
     }
 };
 
-
+/**
+ * Returns true if character is a new line
+ * Also works for windows style new lines.
+ * @param {string} character Single character
+ * @returns {boolean} True if character is a new line
+ */
 function isNewLine(character) {
     if (character === '\r\n')
         return true;
@@ -41,11 +49,22 @@ function isNewLine(character) {
     return false;
 }
 
+/**
+ * Returns true if character is a number from 0 to 9
+ * @param {string} character Single character
+ * @returns {boolean} True if character is a number
+ */
 function isNumeric(character) {
     return !isNaN(parseFloat(character)) && isFinite(character);
 }
 
-
+/**
+ * Returns true if character is a alphabetic.
+ * This also includes spanish characters like "ñ"
+ * or "á".
+ * @param {string} character Single character
+ * @returns {boolean} Returns true if character is alphabetic
+ */
 function isAlphabetic(character) {
     if (character.length !== 1)
         return false;
@@ -60,6 +79,13 @@ function isAlphabetic(character) {
     return false;
 }
 
+/**
+ * Helper function that returns true if both
+ * isNumeric and isAlphabetic functions return true
+ * on the same character.
+ * @param {string} character Single character
+ * @returns {boolean} Return true if character is alphanumeric
+ */
 function isAlphanumeric(character) {
     if (isAlphabetic(character))
         return true;
@@ -70,6 +96,14 @@ function isAlphanumeric(character) {
     return false;
 }
 
+/**
+ * Helper function which returns true if character
+ * is a valid part of an identifier.
+ * An identifier can include any alphanumeric character,
+ * a "-" or "_".
+ * @param {string} character Single character
+ * @returns {boolean} Returns true if character is part of identifier
+ */
 function isIdentifierCharacter(character) {
     if (isAlphanumeric(character))
         return true;
@@ -80,6 +114,9 @@ function isIdentifierCharacter(character) {
     return false;
 }
 
+/**
+ * @class State Machine for lexical analysis
+ */
 class StateMachine {
     constructor() {
         this.currentState = 0;
@@ -88,12 +125,20 @@ class StateMachine {
         this.currentStringPosition = 0;
     }
 
-
+    /**
+     * Loads the string into the machine
+     * @param {string} string The full string we want to analyze
+     */
     setString(string) {
         this.string = string;
     }
 
 
+    /**
+     * Returns true if we have finished analyzing the string
+     * or the string is empty.
+     * @returns {boolean} Returns true if current string is empty.
+     */
     isEmpty() {
         if (!this.string)
             return true;
@@ -102,6 +147,11 @@ class StateMachine {
         return false;
     }
 
+    /**
+     * Once a string has been loaded, this function returns tokens
+     * from the string.
+     * @returns {Token}
+     */
     getNextToken() {
         if (this.isEmpty()) {
             return {
@@ -163,6 +213,14 @@ class StateMachine {
     }
 
 
+    /**
+     * Helper method which updates the machine state based
+     * on the current state and current character.
+     * @param state
+     * @param input
+     * @returns {number}
+     * @private
+     */
     static _transition(state, input) {
         let finalState = ERROR;
         // console.log("State: #{state}, Input: #{input}");
