@@ -1,11 +1,5 @@
-"use strict";
-const fs = require("fs");
-const utils = require("./utils");
-const lexic = require("./lexicParser");
-const syntax = require("./syntaxParser");
-const grammars = require("./tests/testGrammars");
-const bnfParser = require("./grammar_parser");
-
+import {main} from "./parser_builder/main";
+import * as fs from "fs";
 
 console.log("Grammar Parser v1");
 
@@ -23,7 +17,7 @@ function load_bnf_file(filename) {
     });
 }
 
-bnfParser.main();
+main();
 
 
 

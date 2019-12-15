@@ -7,19 +7,24 @@
     "test": "tests"
   },
   "scripts": {
-    "gulp": "gulp",
-    "test": "nodeunit src/tests"
+    "test": "mocha",
+    "build": "tsc"
   },
   "author": "dospro",
   "license": "MIT",
   "devDependencies": {
-    "coffee-script": "^1.12.2",
-    "gulp": "^3.9.1",
-    "gulp-coffee": "^2.3.3",
-    "jsdoc": "^3.5.5",
-    "nodeunit": "^0.10.2"
+    "@types/chai": "^4.2.4",
+    "@types/lodash": "^4.14.146",
+    "@types/mocha": "^5.2.7",
+    "@types/node": "^12.12.6",
+    "chai": "^4.2.0",
+    "jsdoc": "^3.6.3",
+    "mocha": "^6.2.2",
+    "nodeunit": "^0.11.3",
+    "rewire": "^4.0.1",
+    "typescript": "^3.7.2"
   },
   "dependencies": {
-    "lodash": "^4.17.10"
+    "lodash": "^4.17.15"
   }
 }

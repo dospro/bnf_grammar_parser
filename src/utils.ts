@@ -1,23 +1,15 @@
-const isEqual = require("lodash/isEqual");
+import {isEqual} from "lodash";
+import {LR1Item} from "./syntaxParser";
 
-function hasItem(collection, item) {
-    for (let i of collection) {
-        if (isEqual(item, i))
-            return true;
-    }
-    return false;
-}
+export const hasItem = (collection: LR1Item[], item: LR1Item): boolean => {
+    return collection.some(i => isEqual(item, i));
+};
 
-function getIndex(collection, item) {
-    for (let i = 0; i < collection.length; ++i) {
-        if (isEqual(item, collection[i])) {
-            return i;
-        }
-    }
-    return null;
-}
+export const getIndex = (collection: LR1Item[], item: LR1Item): number => {
+    return collection.findIndex(i => isEqual(item, i));
+};
 
-function printFormattedGrammar(grammar) {
+export const printFormattedGrammar = (grammar: any) => {
     for (const leftHand in grammar) {
         for (const rule of grammar[leftHand]) {
             process.stdout.write(`<${leftHand}> ::= `);
@@ -31,15 +23,15 @@ function printFormattedGrammar(grammar) {
             }
         }
     }
-}
+};
 
-function printCollection(collection) {
+export const printCollection = (collection: any) => {
     for (const cc of collection) {
         console.log("\n\nGroup:\n");
         for (const item of cc) {
             let rightHand = "";
             let counter = 0;
-            for (i of item.rightHand) {
+            for (const i of item.rightHand) {
                 if (counter === item.pointPosition) {
                     rightHand += ".";
                 }
@@ -49,9 +41,4 @@ function printCollection(collection) {
             console.log("[%s -> %s, %s]", item.leftHand, rightHand, item.lookAheads);
         }
     }
-}
-
-exports.hasItem = hasItem;
-exports.getIndex = getIndex;
-exports.printFormattedGrammar = printFormattedGrammar;
-exports.printCollection = printCollection;
+};
