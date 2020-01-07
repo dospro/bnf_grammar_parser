@@ -1,5 +1,5 @@
 import {isEqual} from "lodash";
-import {LR1Item} from "./syntaxParser";
+import {LR1Item} from "./syntax_parser";
 
 export const hasItem = (collection: LR1Item[], item: LR1Item): boolean => {
     return collection.some(i => isEqual(item, i));
@@ -25,7 +25,22 @@ export const printFormattedGrammar = (grammar: any) => {
     }
 };
 
-export const printCollection = (collection: any) => {
+export function printCollectionItem(collection: LR1Item[]) {
+    for (const item of collection) {
+        let rightHand = "";
+        let counter = 0;
+        for (const i of item.rightHand) {
+            if (counter === item.pointPosition) {
+                rightHand += ".";
+            }
+            rightHand += ` ${i.text}`;
+            counter++;
+        }
+        console.log(`[${item.leftHand} -> ${rightHand}, ${item.lookAheads}]`);
+    }
+};
+
+export const printCollection = (collection: LR1Item[][]) => {
     for (const cc of collection) {
         console.log("\n\nGroup:\n");
         for (const item of cc) {
@@ -35,7 +50,7 @@ export const printCollection = (collection: any) => {
                 if (counter === item.pointPosition) {
                     rightHand += ".";
                 }
-                rightHand += i.text;
+                rightHand += ` ${i.text}`;
                 counter++;
             }
             console.log("[%s -> %s, %s]", item.leftHand, rightHand, item.lookAheads);

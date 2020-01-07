@@ -1,0 +1,26 @@
+@startuml
+
+  LangSourceCode -down-> [Lang Lexer]
+  [Lang Lexer] -down-> Tokens
+  Tokens -down-> [Syntax Parser]
+  [Syntax Parser] <- [Lang Parser Grammar]
+  [Syntax Parser] -down-> Tree
+  Tree -down-> [Generator]
+  [Generator] -down-> OutputRepr
+
+  LangGrammarString -down-> [BNF Lexer]
+  [BNF Lexer] -down-> BNFTokens
+  BNFTokens -down-> [Syntax Parser B]
+  package "Module" {
+    ActionTable -down-> [BNF Grammar]
+    GotoTable -down-> [BNF Grammar]
+    ActionRules -up-> [BNF Grammar]
+    [Syntax Parser B] <- [BNF Grammar]
+  }
+  [Syntax Parser B] -down-> GrammarTree
+  GrammarTree -down-> [Parser Generator]
+  [Parser Generator] -down-> [Lang Parser Grammar]
+
+
+
+@enduml
