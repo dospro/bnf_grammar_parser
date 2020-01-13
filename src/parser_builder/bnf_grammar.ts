@@ -123,3 +123,25 @@ export const bnfGrammar: Grammar = {
         }
     }]
 };
+
+class BNFVisitor {
+    visitRightSide(node: any) {
+
+    }
+
+    visitRule() {
+
+    }
+
+    visitRulesList() {
+
+    }
+
+    visitGoal() {
+
+    }
+
+    getResult() {
+
+    }
+}

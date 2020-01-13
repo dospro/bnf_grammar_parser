@@ -2,7 +2,7 @@ import {bnfGrammarString, bnfGrammar} from "../bnf_grammar";
 import {BNFLexer, Token} from "../bnf_lexer";
 import {isEqual} from "lodash";
 import {SyntaxParser} from "../../common/syntax_parser";
-import {parenthesisGrammar2, parenthesisGrammarString, parenthesisTokens} from "../../tests/testGrammars";
+import * as fs from "fs";
 
 export function main() {
     const tokensStream: Token[] = [];
@@ -27,6 +27,16 @@ export function main() {
 
     console.log("Action table: %o", actionTable);
     console.log("Goto table: %o", gotoTable);
+
+    const result = {
+        "tokens": tokenSet,
+        "actionTable": actionTable,
+        "gotoTable": gotoTable,
+    };
+    fs.writeFile("tables.json", JSON.stringify(result), (err) => {
+        console.log(err);
+    });
+
 }
 
 main();

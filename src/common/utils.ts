@@ -5,9 +5,12 @@ export const hasItem = (collection: LR1Item[], item: LR1Item): boolean => {
     return collection.some(i => isEqual(item, i));
 };
 
-export const getIndex = (collection: LR1Item[], item: LR1Item): number => {
-    return collection.findIndex(i => isEqual(item, i));
-};
+export function times(limit: number, callback: (i: number) => void) {
+    for (let i = 0; i < limit; ++i) {
+        callback(i);
+    }
+}
+
 
 export const printFormattedGrammar = (grammar: any) => {
     for (const leftHand in grammar) {

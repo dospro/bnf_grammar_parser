@@ -1,0 +1,9 @@
+<goal> ::= <rules_list>
+<rules_list> ::= "new-line"<rules_list>
+<rules_list> ::= <rules_list><rule>
+<rules_list> ::= <rule>
+<rule> ::= "no-terminal" "assignment" <right_side> "new-line"
+<right_side> ::= <right_side> "no-terminal"
+<right_side> ::= <right_side> "terminal"
+<right_side> ::= "no-terminal"
+<right_side> ::= "terminal"
