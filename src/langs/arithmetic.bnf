@@ -1,0 +1,12 @@
+<goal> ::= <exp>
+
+<exp> ::= <exp> "+" <term>
+<exp> ::= <exp> "-" <term>
+<exp> ::= <term>
+
+<term> ::= <term> "*" <factor>
+<term> ::= <term> "/" <factor>
+<term> ::= <factor>
+
+<factor> ::= "(" <exp> ")"
+<factor> ::= "number"
