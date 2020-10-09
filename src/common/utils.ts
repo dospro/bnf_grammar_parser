@@ -1,14 +1,16 @@
 import {isEqual} from "lodash";
-import {LR1Item} from "./syntax_parser";
+import {ILR1Item as LR1Item} from "./parser_builder";
 
 export const hasItem = (collection: LR1Item[], item: LR1Item): boolean => {
     return collection.some(i => isEqual(item, i));
 };
 
-export function times(limit: number, callback: (i: number) => void) {
+export function take(limit: number): number[] {
+    let result = [];
     for (let i = 0; i < limit; ++i) {
-        callback(i);
+        result.push(i);
     }
+    return result;
 }
 
 

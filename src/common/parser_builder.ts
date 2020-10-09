@@ -1,5 +1,5 @@
 import {isEqual} from "lodash";
-import {hasItem} from "./utils";
+import {hasItem, take} from "./utils";
 import {Grammar} from "../parser_builder/bnf_grammar";
 import {Token} from "../parser_builder/bnf_lexer";
 
@@ -16,50 +16,29 @@ export interface ILR1Item {
     lookAheads: string[];
 }
 
-export class LR1Item {
-    public leftHand: string;
-    public rightHand: Token[];
-    public ruleAction: any;
-    public pointPosition: number;
-    public lookAheads: string[];
-
-    constructor(params: any) {
-        if (!params)
-            params = {};
-        this.leftHand = params.leftHand || "";
-        this.rightHand = params.rightHand || [];
-        this.ruleAction = params.ruleAction || undefined;
-        this.pointPosition = params.pointPosition || 0;
-        this.lookAheads = params.lookAheads || [];
-    }
-
-    public equals(item: LR1Item): boolean {
-        return isEqual(this, item);
-    }
-
-    public tokenNextToPoint(): Token | null {
-        if (this.pointPosition >= this.rightHand.length)
-            return null;
-        return this.rightHand[this.pointPosition];
-    }
-}
-
-export class SyntaxParser {
-    private readonly cannonicalCollection: Array<Array<LR1Item>>;
+export class ParserBuilder {
+    private readonly cannonicalCollection: Array<Array<ILR1Item>>;
 
     constructor(private readonly grammar: Grammar) {
         this.cannonicalCollection = [];
     }
 
-    closure(item: LR1Item) {
-        let queuedItems: LR1Item[] = [item];
-        let finalItemsSet: LR1Item[] = [];
+    closure(item: ILR1Item) {
+        let queuedItems: ILR1Item[] = [item];
+        let finalItemsSet: ILR1Item[] = [];
 
         while (queuedItems.length > 0) {
-            const currentItem: LR1Item | undefined = queuedItems.pop() as LR1Item;
+            const currentItem = queuedItems.pop();
+            if(currentItem == null) {
+                continue;
+            }
             finalItemsSet.push(currentItem);
 
-            const tokenNextToPoint: Token | null = currentItem.tokenNextToPoint();
+            if (currentItem.pointPosition >= currentItem.rightHand.length)
+                continue;
+
+            const tokenNextToPoint= currentItem.rightHand[currentItem.pointPosition];
+
             if (tokenNextToPoint === null)
                 continue;
 
@@ -69,19 +48,18 @@ export class SyntaxParser {
             // We have a no terminal, add all the rules for that no-terminal
             const leftHand: string = tokenNextToPoint.text;
             const rules = this.grammar[leftHand];
-            const newItems: LR1Item[] = rules
+            const newItems: ILR1Item[] = rules
                 .map(rule => {
                     return this.getLookAheads(currentItem)
                         .map(symbol => {
-                            return new LR1Item({
+                            return {
                                 leftHand: leftHand,
                                 rightHand: rule["predicate"],
-                                ruleAction: rule["ruleAction"],
                                 pointPosition: 0,
                                 lookAheads: [symbol]
-                            });
+                            };
                         })
-                        .filter(newItem => finalItemsSet.every((item) => !newItem.equals(item)));
+                        .filter(newItem => finalItemsSet.every((item) => !isEqual(newItem, item)));
                 })
                 .reduce((acc, val) => acc.concat(val), []);
 
@@ -91,7 +69,7 @@ export class SyntaxParser {
     }
 
 
-    getLookAheads(item: LR1Item): string[] {
+    getLookAheads(item: ILR1Item): string[] {
         /* Given an LR1, finds the set of look ahead symbols */
         if (item.pointPosition >= item.rightHand.length - 1)
             return item.lookAheads;
@@ -131,21 +109,20 @@ export class SyntaxParser {
     }
 
 
-    goto(collection: LR1Item[], token: Token): LR1Item[] {
+    goto(collection: ILR1Item[], token: Token): ILR1Item[] {
         // console.log(`For token ${token.text}`);
         // printCollectionItem(collection);
         const result = collection
             .filter(item => isEqual(item.rightHand[item.pointPosition], token))
             .map(item => {
-                return this.closure(new LR1Item({
+                return this.closure({
                     leftHand: item.leftHand,
                     rightHand: item.rightHand,
-                    ruleAction: item.ruleAction,
                     pointPosition: item.pointPosition + 1,
                     lookAheads: item.lookAheads,
-                }));
+                });
             })
-            .reduce((acc, val) => acc.concat(val.filter(v => !hasItem(acc, v))), []);
+            .reduce((acc, val) => acc.concat(val.filter(v => !hasItem(acc, v))), []); // TODO: Review. Can simplify
         // console.log("Result:");
         // printCollectionItem(result);
         return result;
@@ -156,15 +133,12 @@ export class SyntaxParser {
             return;
 
         //cc0 <- closure({[S'->S,eof]})
-        const cc0 = this.closure(
-            new LR1Item(
-                {
-                    leftHand: "goal",
-                    rightHand: this.grammar["goal"][0]["predicate"],
-                    ruleAction: this.grammar["goal"][0]["ruleAction"],
-                    pointPosition: 0,
-                    lookAheads: ["$"]
-                })
+        const cc0 = this.closure({
+                leftHand: "goal",
+                rightHand: this.grammar["goal"][0]["predicate"],
+                pointPosition: 0,
+                lookAheads: ["$"],
+            }
         );
         //printCollectionItem(cc0);
 
@@ -172,14 +146,17 @@ export class SyntaxParser {
         let queuedItems = [cc0];
 
         while (queuedItems.length > 0) {
-            const currentCollection = queuedItems.shift() as LR1Item[];
+            const currentCollection = queuedItems.shift();
+            if (currentCollection === undefined) {
+                break;
+            }
 
-            const isInCollection = (cannonicalCollection: LR1Item[][], collection: LR1Item[]): boolean => {
+            const isInCollection = (cannonicalCollection: ILR1Item[][], collection: ILR1Item[]): boolean => {
                 for (const cc of cannonicalCollection) {
                     if (cc.length !== collection.length) {
                         continue;
                     }
-                    const result = cc.every(ccItem => collection.some(collectionItem => collectionItem.equals(ccItem)));
+                    const result = cc.every(ccItem => collection.some(collectionItem => isEqual(collectionItem, ccItem)));
                     console.log("Result: %o", result);
                     if (result) {
                         return true;
@@ -209,24 +186,26 @@ export class SyntaxParser {
         this.cannonicalCollection.forEach((cc, i) => {
             cc.forEach(item => {
                 //[A->B.cG,a] and goto(CCi,c)=CCj
-                let nextToken = item.tokenNextToPoint();
-                if (nextToken === null) {
+                if (item.pointPosition>=item.pointPosition)
+                {
                     if (item.leftHand === 'goal') {
                         actionTable.addAccept(i, item)
                     } else {
                         actionTable.addReduce(i, item)
                     }
-                } else if (nextToken && nextToken.type === "terminal") {
-                    let nextState = this.goto(cc, nextToken);
-                    let newStateIndex = this.cannonicalCollection.findIndex(group => isEqual(group, nextState));
-                    if (newStateIndex !== -1) {
-                        actionTable.addShift(i, nextToken.text, newStateIndex);
+                } else {
+                    let nextToken = item.rightHand[item.pointPosition];
+                    if (nextToken.type === "terminal") {
+                        let nextState = this.goto(cc, nextToken);
+                        let newStateIndex = this.cannonicalCollection.findIndex(group => isEqual(group, nextState));
+                        if (newStateIndex !== -1) {
+                            actionTable.addShift(i, nextToken.text, newStateIndex);
+                        }
                     }
                 }
             });
         });
         return actionTable;
-
     }
 
 
@@ -254,7 +233,6 @@ export type ReduceAction = {
     action: 'shift' | 'reduce' | 'accept',
     leftHand: string,
     itemsToPull: number,
-    ruleAction: any
 }
 
 export interface IActionTable {
@@ -276,7 +254,7 @@ export class ActionTable {
         this.data[sourceIndex][terminal] = {action: "shift", index: destIndex};
     }
 
-    addReduce(sourceIndex: number, item: LR1Item) {
+    addReduce(sourceIndex: number, item: ILR1Item) {
         if (!(sourceIndex in this.data))
             this.data[sourceIndex] = {};
         if (item.lookAheads[0] in this.data[sourceIndex]) {
@@ -287,11 +265,10 @@ export class ActionTable {
             action: "reduce",
             leftHand: item.leftHand,
             itemsToPull: item.rightHand.length,
-            ruleAction: item.ruleAction
         };
     }
 
-    addAccept(sourceIndex: number, item: LR1Item) {
+    addAccept(sourceIndex: number, item: ILR1Item) {
         if (!(sourceIndex in this.data))
             this.data[sourceIndex] = {};
         if (item.lookAheads[0] in this.data[sourceIndex]) {
@@ -302,7 +279,6 @@ export class ActionTable {
             action: "accept",
             leftHand: item.leftHand,
             itemsToPull: item.rightHand.length,
-            ruleAction: item.ruleAction
         };
     }
 
