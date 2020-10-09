@@ -1,9 +1,23 @@
+/**
+ * The goal of this app is to read a BNF grammar and generate the action and goto tables
+ * to that grammar.
+ *
+ * Steps:
+ *
+ * 1. Read grammar string and pass it through the lexer to produce tokens
+ * 2. Pass the tokens to the parser and generate a tree
+ * 3. Use the visitor pattern to build a json representation of the grammar
+ * 4. Use the parser builder to generate the tables
+ * 5. Save the tables.
+ */
+
 import {BNFLexer, Token} from "./bnf_lexer";
-import {ActionTable, GotoTable, LR1Item, ReduceAction, ShiftAction, SyntaxParser} from "../common/syntax_parser";
+import {ActionTable, GotoTable, ReduceAction, ShiftAction} from "../common/parser_builder";
+import {BNFVisitor, JSONBuilderBNFVisitor, TreeNode} from "./parser_generator";
 import * as fs from "fs";
 import * as path from 'path';
 import {isEqual} from "lodash";
-import {times} from "../common/utils";
+import {take} from "../common/utils";
 
 function readPromise(filename: string): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -22,8 +36,7 @@ function getTop(collection: Stack): number | string {
 
 function buildTree(actionTable: ActionTable, gotoTable: GotoTable, tokenStream: Token[]) {
     let stack: Stack = [];
-    let result: any = {};
-    let treeStack: any = [];
+    let treeStack: TreeNode[] = [];
     let tokenIndex = 0;
     stack.push('$');
     stack.push(0);
@@ -45,25 +58,25 @@ function buildTree(actionTable: ActionTable, gotoTable: GotoTable, tokenStream: 
         }
         if (action["action"] === "reduce") {
             const reduceAction = action as ReduceAction;
-            let subTree = [];
-            for (let i = 0; i < reduceAction["itemsToPull"]; ++i) {
-                stack.pop();
-                subTree.unshift(stack.pop());
-            }
 
-            if (reduceAction["ruleAction"] !== null && reduceAction["ruleAction"] !== undefined) {
-                result[reduceAction["leftHand"]] = reduceAction["ruleAction"](result, subTree);
-            }
-
-            const treeNode: any = {
+            const treeNode: TreeNode = {
                 text: reduceAction["leftHand"],
                 type: 'no-terminal',
-                token_type: null,
-                children: [],
+                children: [] as TreeNode[],
+                accept(visitor: BNFVisitor) {
+                    visitor.visit(this);
+                }
             };
-            for (let i = 0; i < reduceAction["itemsToPull"]; ++i) {
-                treeNode.children.unshift(treeStack.pop());
-            }
+
+            let subTree: string[] = [];
+
+            take(reduceAction["itemsToPull"])
+                .forEach((_) => {
+                    stack.pop();
+                    subTree.unshift(stack.pop() as string);
+                    treeNode.children.unshift(treeStack.pop() as TreeNode);
+                });
+
             treeStack.push(treeNode);
 
             currentState = getTop(stack) as number;
@@ -77,11 +90,14 @@ function buildTree(actionTable: ActionTable, gotoTable: GotoTable, tokenStream: 
             stack.push(currentToken.text);
             stack.push(shiftAction["index"]);
 
-            const treeNode = {
+            const treeNode: TreeNode = {
                 text: currentToken.text,
-                type: 'terminal',
-                token_type: currentToken.type,
-                children: null,
+                type: "terminal",
+                tokenType: currentToken.type,
+                children: [] as TreeNode[],
+                accept(visitor: BNFVisitor) {
+                    visitor.visit(this);
+                }
             };
             treeStack.push(treeNode);
 
@@ -89,24 +105,22 @@ function buildTree(actionTable: ActionTable, gotoTable: GotoTable, tokenStream: 
         } else if (action["action"] === "accept") {
             const acceptAction = action as ReduceAction;
             let subTree = [];
-            for (let i = 0; i < acceptAction["itemsToPull"]; ++i) {
-                stack.pop();
-                subTree.push(stack.pop());
-            }
 
-            if (acceptAction["ruleAction"] !== null && acceptAction["ruleAction"] !== undefined) {
-                result[acceptAction["leftHand"]] = acceptAction["ruleAction"](result, subTree);
-            }
-
-            const treeNode: any = {
+            const treeNode: TreeNode = {
                 text: acceptAction["leftHand"],
                 type: 'no-terminal',
-                token_type: null,
                 children: [],
+                accept(visitor: BNFVisitor) {
+                    visitor.visit(this);
+                }
             };
-            for (let i = 0; i < acceptAction["itemsToPull"]; ++i) {
-                treeNode.children.unshift(treeStack.pop());
-            }
+
+            take(acceptAction["itemsToPull"])
+                .forEach((_) => {
+                    stack.pop();
+                    subTree.unshift(stack.pop() as string);
+                    treeNode.children.unshift(treeStack.pop() as TreeNode);
+                });
             treeStack.push(treeNode);
 
             currentState = getTop(stack) as number;
@@ -135,12 +149,10 @@ export async function main() {
     let terminals: Token[] = [];
     let noTerminals: Token[] = [];
 
-    console.log(__dirname);
     //Read bnf grammar file
-    const data = await readPromise("../../src/langs/parenthesis/parenthesis.bnf");
-
+    const grammarString = await readPromise("../../src/langs/arithmetic.bnf");
     const bnfLexer = new BNFLexer();
-    bnfLexer.setString(data);
+    bnfLexer.setString(grammarString);
     while (!bnfLexer.isEmpty()) {
         const token = bnfLexer.getNextToken();
         tokensStream.push(token);
@@ -153,76 +165,14 @@ export async function main() {
     let bnfTables: any = await readPromise("../../tables.json");
     bnfTables = JSON.parse(bnfTables);
     const {tokens, actionTable, gotoTable} = bnfTables;
-    console.log("%o", tokens);
-    console.log("%o", actionTable);
-    console.log("%o", gotoTable);
+    // console.log("%o", tokens);
+    // console.log("%o", actionTable);
+    // console.log("%o", gotoTable);
 
-    let result = buildTree(actionTable, gotoTable, tokensStream);
-    // console.log("%o", result);
-    //console.log(printTree(result));
-    let html = `<div><h3>${printTreeHTML(result)}</h3></div>`;
-    fs.writeFile("grammar.html", html, (err) => {
-        console.log(err);
-    });
-
-    //
-    // console.log("Building cannonical collection");
-    // syntaxParser.buildCannonicalCollection(tokens);
-    // console.log("Built cannonical collection");
-    // let actionTable = syntaxParser.getActionTable();
-    // console.log("Built action table");
-    // let gotoTable = syntaxParser.getGotoTable(noTerminals);
-    // console.log("Built goto table");
-    // let result = buildTree(actionTable, gotoTable);
-    // console.log("%s", JSON.stringify(result, null, 2));
-}
-
-function printTree(tree: any, level: number = 0): string {
-    let msg: string = '';
-    let newLevel = level;
-
-    for (const node of tree) {
-        if (node.type !== 'no-terminal') {
-            if (node.token_type === 'no-terminal') {
-                msg += `<${node.text}> `;
-            } else if (node.token_type === 'terminal') {
-                msg += `"${node.text}" `;
-            } else {
-                msg += `${node.text} `;
-            }
-            msg += ' ';
-            newLevel++;
-        }
-        if (node.text === 'rule') {
-            msg += '\n';
-        }
-        if (node.children !== null) {
-            msg += printTree(node.children, newLevel);
-        }
+    const tree = buildTree(actionTable, gotoTable, tokensStream);
+    const visitor = new JSONBuilderBNFVisitor();
+    if (tree) {
+        tree[0].accept(visitor);
+        console.log(JSON.stringify(visitor.getResult(), null, 2));
     }
-    return msg;
-}
-
-function printTreeHTML(tree: any, level: number = 0): string {
-    let msg: string = '';
-    let newLevel = level;
-
-    for (const node of tree) {
-        if (node.type !== 'no-terminal') {
-            if (node.token_type === 'no-terminal') {
-                msg += `<span style="color: blue"> ${node.text} </span>`;
-            } else if (node.token_type === 'terminal') {
-                msg += `<span style="color: cadetblue"> ${node.text} </span>`;
-            } else {
-                msg += `${node.text}`;
-            }
-            newLevel++;
-        } else if (node.type === 'no-terminal' && node.text === 'rule') {
-            msg += '</br>';
-        }
-        if (node.children !== null) {
-            msg += printTreeHTML(node.children, newLevel);
-        }
-    }
-    return msg;
 }

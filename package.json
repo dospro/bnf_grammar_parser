@@ -1,7 +1,7 @@
 {
   "name": "lr1_parser",
   "version": "1.0.0",
-  "description": "A program that parses grammars written in bnf format and outputs code in coffeescript representing the action and goto tables used to parse a language.",
+  "description": "A program that parses grammars written in bnf format and outputs the action and goto tables in json format used to parse a language.",
   "main": "main.js",
   "directories": {
     "test": "tests"

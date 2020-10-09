@@ -246,7 +246,7 @@ export class BNFLexer {
                 else {
                     let nextState = statesMatrix[state][input];
                     if (nextState === undefined) {
-                        console.log(`Unkown input ${input}`);
+                        console.log(`Unknown input ${input}`);
                         break;
                     }
                     finalState = nextState;

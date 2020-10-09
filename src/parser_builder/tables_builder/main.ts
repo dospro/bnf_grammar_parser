@@ -1,7 +1,7 @@
 import {bnfGrammarString, bnfGrammar} from "../bnf_grammar";
 import {BNFLexer, Token} from "../bnf_lexer";
 import {isEqual} from "lodash";
-import {SyntaxParser} from "../../common/syntax_parser";
+import {ParserBuilder} from "../../common/parser_builder";
 import * as fs from "fs";
 
 export function main() {
@@ -20,7 +20,7 @@ export function main() {
     console.log("Tokens stream: %o", tokensStream);
     console.log("Tokens set: %o", tokenSet);
 
-    let syntaxParser = new SyntaxParser(bnfGrammar);
+    let syntaxParser = new ParserBuilder(bnfGrammar);
     syntaxParser.buildCannonicalCollection(tokenSet);
     const actionTable = syntaxParser.getActionTable();
     const gotoTable = syntaxParser.getGotoTable(tokenSet.filter(item => item.type === "no-terminal"));
