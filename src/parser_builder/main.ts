@@ -12,7 +12,7 @@
  */
 
 import {BNFLexer, Token} from "./bnf_lexer";
-import {ActionTable, GotoTable, ReduceAction, ShiftAction} from "../common/parser_builder";
+import {ActionTable, GotoTable, ParserBuilder, ReduceAction, ShiftAction} from "../common/parser_builder";
 import {BNFVisitor, JSONBuilderBNFVisitor, TreeNode} from "./parser_generator";
 import * as fs from "fs";
 import * as path from 'path';
@@ -173,6 +173,24 @@ export async function main() {
     const visitor = new JSONBuilderBNFVisitor();
     if (tree) {
         tree[0].accept(visitor);
+        const resultGrammar = visitor.getResult();
+        const parserBuilder = new ParserBuilder(resultGrammar);
+        parserBuilder.buildCannonicalCollection(tokensSet);
+        const actionTable = parserBuilder.getActionTable();
+        const gotoTable = parserBuilder.getGotoTable(tokensSet.filter(item => item.type === "no-terminal"));
+
+        // Now that we have the grammar in json format, let's generate the tables
         console.log(JSON.stringify(visitor.getResult(), null, 2));
+        console.log(JSON.stringify(actionTable, null, 2));
+        console.log(JSON.stringify(gotoTable, null, 2));
+
+        const tablesFile = {
+            "tokens": tokensSet,
+            "actionTable": actionTable,
+            "gotoTable": gotoTable,
+        }
+        fs.writeFile("arithmetic.json", JSON.stringify(tablesFile, null, 2), (err) => {
+            console.log(err);
+        });
     }
 }

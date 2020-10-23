@@ -157,7 +157,7 @@ export class ParserBuilder {
                         continue;
                     }
                     const result = cc.every(ccItem => collection.some(collectionItem => isEqual(collectionItem, ccItem)));
-                    console.log("Result: %o", result);
+                    // console.log("Result: %o", result);
                     if (result) {
                         return true;
                     }
@@ -186,7 +186,7 @@ export class ParserBuilder {
         this.cannonicalCollection.forEach((cc, i) => {
             cc.forEach(item => {
                 //[A->B.cG,a] and goto(CCi,c)=CCj
-                if (item.pointPosition>=item.pointPosition)
+                if (item.pointPosition >= item.rightHand.length)
                 {
                     if (item.leftHand === 'goal') {
                         actionTable.addAccept(i, item)

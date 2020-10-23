@@ -102,7 +102,7 @@ export class JSONBuilderBNFVisitor extends BNFVisitor {
         for (const n of element.children) {
             if (n.type === "terminal") {
                 tokenStream.push({
-                    type: "terminal",
+                    type: n.tokenType,
                     text: n.text,
                 });
             } else if (n.type === "no-terminal") {
@@ -150,7 +150,7 @@ export class JSONBuilderBNFVisitor extends BNFVisitor {
                         const r = this.visit(n);
                         const key = Object.keys(r)[0];
                         if(Object.keys(rulesList).includes(key)) {
-                            rulesList[key].push(r[key]);
+                            rulesList[key].push(r[key][0]);
                         } else {
                             rulesList[key] = r[key];
                         }
