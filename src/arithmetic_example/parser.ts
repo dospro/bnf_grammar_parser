@@ -1,7 +1,7 @@
 import {ActionTable, GotoTable, ReduceAction, ShiftAction} from "../common/parser_builder";
 import {Token} from "../parser_builder/bnf_lexer";
-import {BNFVisitor, TreeNode} from "../parser_builder/parser_generator";
 import {take} from "../common/utils";
+import {ArithmeticVisitor, TreeNode} from "./generators";
 
 type Stack = Array<number | string>;
 
@@ -63,7 +63,7 @@ export class TreeBuilder {
             text: action.leftHand,
             type: "no-terminal",
             children: [] as TreeNode[],
-            accept(visitor: BNFVisitor): void {
+            accept(visitor: ArithmeticVisitor): void {
                 visitor.visit(this);
             }
         }
@@ -87,7 +87,7 @@ export class TreeBuilder {
             type: "terminal",
             tokenType: token.type,
             children: [] as TreeNode[],
-            accept(visitor: BNFVisitor): void {
+            accept(visitor: ArithmeticVisitor): void {
                 visitor.visit(this);
             }
         }
