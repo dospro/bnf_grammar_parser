@@ -46,19 +46,19 @@ export function printCollectionItem(collection: LR1Item[]) {
 };
 
 export const printCollection = (collection: LR1Item[][]) => {
-    for (const cc of collection) {
-        console.log("\n\nGroup:\n");
-        for (const item of cc) {
-            let rightHand = "";
-            let counter = 0;
-            for (const i of item.rightHand) {
-                if (counter === item.pointPosition) {
-                    rightHand += ".";
-                }
-                rightHand += ` ${i.text}`;
-                counter++;
-            }
+    collection.forEach((cc, i) => {
+        console.log(`\n\nGroup: ${i}\n`);
+        cc.forEach((item) => {
+            const rightHand = item
+                .rightHand
+                .reduce((acc, i, counter) => {
+                    if (counter === item.pointPosition) {
+                        acc += ".";
+                    }
+                    acc += ` ${i.text} `;
+                    return acc;
+                }, "");
             console.log("[%s -> %s, %s]", item.leftHand, rightHand, item.lookAheads);
-        }
-    }
+        });
+    });
 };
