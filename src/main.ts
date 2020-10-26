@@ -1,12 +1,8 @@
-import {main} from "./parser_builder/main";
-import * as fs from "fs";
-import {BNFLexer} from "./parser_builder/bnf_lexer";
-import {newLexer} from "./arithmetic_example/main";
+import {main} from "./arithmetic_example/main";
+import {main as pmain} from "./parser_builder/main";
 
 console.log("Grammar Parser v1");
-
-// console.log("Calling main");
-main();
+pmain().then(() => main());
 
 
 interface Visitor {

@@ -180,9 +180,9 @@ export async function main() {
         const gotoTable = parserBuilder.getGotoTable(tokensSet.filter(item => item.type === "no-terminal"));
 
         // Now that we have the grammar in json format, let's generate the tables
-        console.log(JSON.stringify(visitor.getResult(), null, 2));
-        console.log(JSON.stringify(actionTable, null, 2));
-        console.log(JSON.stringify(gotoTable, null, 2));
+        // console.log(JSON.stringify(visitor.getResult(), null, 2));
+        // console.log(JSON.stringify(actionTable, null, 2));
+        // console.log(JSON.stringify(gotoTable, null, 2));
 
         const tablesFile = {
             "tokens": tokensSet,
@@ -190,7 +190,9 @@ export async function main() {
             "gotoTable": gotoTable,
         }
         fs.writeFile("arithmetic.json", JSON.stringify(tablesFile, null, 2), (err) => {
-            console.log(err);
+            if (err) {
+                console.log(err);
+            }
         });
     }
 }
