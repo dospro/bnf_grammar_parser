@@ -1,5 +1,5 @@
 import {isEqual} from "lodash";
-import {hasItem, take} from "./utils";
+import {hasItem} from "./utils";
 import {Grammar} from "../parser_builder/bnf_grammar";
 import {Token} from "../parser_builder/bnf_lexer";
 
@@ -29,7 +29,7 @@ export class ParserBuilder {
 
         while (queuedItems.length > 0) {
             const currentItem = queuedItems.pop();
-            if(currentItem == null) {
+            if (currentItem === undefined) {
                 continue;
             }
             finalItemsSet.push(currentItem);
@@ -37,7 +37,7 @@ export class ParserBuilder {
             if (currentItem.pointPosition >= currentItem.rightHand.length)
                 continue;
 
-            const tokenNextToPoint= currentItem.rightHand[currentItem.pointPosition];
+            const tokenNextToPoint = currentItem.rightHand[currentItem.pointPosition];
 
             if (tokenNextToPoint === null)
                 continue;
@@ -186,8 +186,7 @@ export class ParserBuilder {
         this.cannonicalCollection.forEach((cc, i) => {
             cc.forEach(item => {
                 //[A->B.cG,a] and goto(CCi,c)=CCj
-                if (item.pointPosition >= item.rightHand.length)
-                {
+                if (item.pointPosition >= item.rightHand.length) {
                     if (item.leftHand === 'goal') {
                         actionTable.addAccept(i, item)
                     } else {
@@ -197,7 +196,9 @@ export class ParserBuilder {
                     let nextToken = item.rightHand[item.pointPosition];
                     if (nextToken.type === "terminal") {
                         let nextState = this.goto(cc, nextToken);
-                        let newStateIndex = this.cannonicalCollection.findIndex(group => isEqual(group, nextState));
+                        let newStateIndex = this
+                            .cannonicalCollection
+                            .findIndex(group => compareCollections(group, nextState));
                         if (newStateIndex !== -1) {
                             actionTable.addShift(i, nextToken.text, newStateIndex);
                         }
@@ -213,7 +214,7 @@ export class ParserBuilder {
         return this.cannonicalCollection.reduce((acc, cc, i) => {
             return noTerminals.reduce((table, nt) => {
                 let nextState = this.goto(cc, nt);
-                let nextStateIndex = this.cannonicalCollection.findIndex(group => isEqual(group, nextState));
+                let nextStateIndex = this.cannonicalCollection.findIndex(group => compareCollections(group, nextState));
                 if (nextStateIndex !== -1) {
                     if (!(i in table))
                         table[i] = {};
@@ -285,4 +286,11 @@ export class ActionTable {
     getAction(state: number, token: string): ShiftAction | ReduceAction {
         return this.data[state][token];
     }
+}
+
+function compareCollections(a: ILR1Item[], b: ILR1Item[]) {
+    if (a.length !== b.length) {
+        return false;
+    }
+    return a.every(p => b.some(q => isEqual(p, q)));
 }
