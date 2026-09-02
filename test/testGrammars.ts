@@ -1,4 +1,4 @@
-import {Grammar} from "../parser_builder/bnf_grammar";
+import {Grammar} from "../src/bnf/meta_grammar.js";
 
 export const parenthesisGrammarString = `
 <goal> ::= <list>

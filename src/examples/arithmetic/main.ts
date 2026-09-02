@@ -1,8 +1,8 @@
-import {newLexer} from "./lexer";
-import {TreeBuilder} from "./parser";
+import {newLexer} from "./lexer.js";
+import {TreeBuilder} from "./parser.js";
 import fs from "fs";
 import path from "path";
-import {ArithmeticInterpreterVisitor} from "./generators";
+import {ArithmeticInterpreterVisitor} from "./generators.js";
 
 function readPromise(filename: string): Promise<string> {
     return new Promise((resolve, reject) => {

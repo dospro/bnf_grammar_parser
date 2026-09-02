@@ -1,4 +1,4 @@
-import {BNFVisitor} from "../parser_builder/parser_generator";
+import {BNFVisitor} from "../../bnf/parser_generator.js";
 
 export interface TreeNode {
     text: string;

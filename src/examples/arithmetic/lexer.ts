@@ -1,4 +1,4 @@
-import {None, Option, Some} from "../common/option";
+import {None, Option, Some} from "../../common/option.js";
 
 interface Token {
     type: string;

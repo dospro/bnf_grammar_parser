@@ -1,11 +1,15 @@
 {
   "name": "lr1_parser",
   "version": "1.0.0",
-  "description": "A program that parses grammars written in bnf format and outputs the action and goto tables in json format used to parse a language.",
-  "main": "main.js",
-  "directories": {
-    "test": "tests"
+  "description": "A CLI tool that reads grammars written in BNF format and generates standalone LR(1) parsers in TypeScript.",
+  "main": "dist/main.js",
+  "type": "module",
+  "bin": {
+    "lr1": "dist/main.js"
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "test": "mocha",
     "build": "tsc"
@@ -13,18 +17,11 @@
   "author": "dospro",
   "license": "MIT",
   "devDependencies": {
-    "@types/chai": "^4.2.4",
-    "@types/lodash": "^4.14.146",
-    "@types/mocha": "^5.2.7",
-    "@types/node": "^12.12.6",
-    "chai": "^4.2.0",
-    "jsdoc": "^3.6.3",
-    "mocha": "^6.2.2",
-    "nodeunit": "^0.11.3",
-    "rewire": "^4.0.1",
-    "typescript": "^3.7.2"
-  },
-  "dependencies": {
-    "lodash": "^4.17.15"
+    "@types/chai": "^5.2.3",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^26.3.0",
+    "chai": "^6.2.2",
+    "mocha": "^11.8.0",
+    "typescript": "^7.0.2"
   }
 }

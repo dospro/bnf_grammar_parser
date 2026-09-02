@@ -1,7 +1,7 @@
-import {ActionTable, GotoTable, ReduceAction, ShiftAction} from "../common/parser_builder";
-import {Token} from "../parser_builder/bnf_lexer";
-import {take} from "../common/utils";
-import {ArithmeticVisitor, TreeNode} from "./generators";
+import {ActionTable, GotoTable, ReduceAction, ShiftAction} from "../../lr1/parser_builder.js";
+import {Token} from "../../bnf/lexer.js";
+import {take} from "../../common/utils.js";
+import {ArithmeticVisitor, TreeNode} from "./generators.js";
 
 type Stack = Array<number | string>;
 
