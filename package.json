@@ -11,17 +11,14 @@
     "dist"
   ],
   "scripts": {
-    "test": "mocha",
-    "build": "tsc"
+    "test": "npm run build && npm run build:test && node --test \"dist/test/**/*.test.js\"",
+    "build": "tsc",
+    "build:test": "tsc -p tsconfig.test.json"
   },
   "author": "dospro",
   "license": "MIT",
   "devDependencies": {
-    "@types/chai": "^5.2.3",
-    "@types/mocha": "^10.0.10",
     "@types/node": "^26.3.0",
-    "chai": "^6.2.2",
-    "mocha": "^11.8.0",
     "typescript": "^7.0.2"
   }
 }
